@@ -1,71 +1,47 @@
 class Player
   attr_accessor :sign, :name
+end
 
-  def initialize(player_type = :human)
-    @player_type = player_type
-    @sign = nil
-    @name = nil
-  end
-
+class Human < Player
   def set_name
-    if human?
-      name = nil
-      loop do
-        print 'What is your name? '
-        name = gets.chomp
-        break unless name.empty?
-        puts 'Please enter a name!'
-      end
-      self.name = name
-    else
-      self.name = ['R2D2', 'C3PO', 'Walle', 'Chappie'].sample
+    name = nil
+    loop do
+      print 'What is your name? '
+      name = gets.chomp
+      break unless name.empty?
+      puts 'Please enter a name!'
     end
+    self.name = name
   end
 
   def choose
-    if human?
-      choice = nil
-      loop do
-        print 'Please choose rock, paper or scissors: '
-        choice = gets.chomp
-        break if ['paper', 'rock', 'scissors'].include? choice
-        puts 'Sorry, that is not a valid option!'
-      end
-      self.sign = choice
-    else
-      self.sign = ['rock', 'paper', 'scissors'].sample
+    choice = nil
+    loop do
+      print 'Please choose rock, paper or scissors: '
+      choice = gets.chomp
+      break if ['paper', 'rock', 'scissors'].include? choice
+      puts 'Sorry, that is not a valid option!'
     end
-  end
-
-  def human?
-    @player_type == :human
+    self.sign = choice
   end
 end
 
-class Sign
-  def initialize
-    # seems like we need something to keep track
-    # of the choice... a sign object can be "paper", "rock" or "scissors"
+class Computer < Player
+  def set_name
+    self.name = ['R2D2', 'C3PO', 'Walle', 'Chappie'].sample
   end
-end
 
-class Rule
-  def initialize
-    # not sure what the "state" of a rule object should be
+  def choose
+    self.sign = ['rock', 'paper', 'scissors'].sample
   end
-end
-
-# not sure where "compare" goes yet
-def compare(move1, move2)
-
 end
 
 class RPSGame
   attr_accessor :human, :computer
 
   def initialize
-    @human = Player.new
-    @computer = Player.new(:computer)
+    @human = Human.new
+    @computer = Computer.new
   end
 
   def display_welcome_message
