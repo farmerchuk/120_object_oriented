@@ -12,7 +12,7 @@ class Player
       loop do
         print 'Please choose rock, paper or scissors: '
         choice = gets.chomp
-        break if ['paper', 'rock', 'scissors'].include?(choice)
+        break if ['paper', 'rock', 'scissors'].include? choice
         puts 'Sorry, that is not a valid option!'
       end
       self.sign = choice
@@ -72,14 +72,28 @@ class RPSGame
       puts 'You win!'
     else
       puts 'Computer wins!'
-    end 
+    end
+  end
+
+  def play_again?
+    choice = nil
+    loop do
+      print 'Would you like to play again? (y/n) '
+      choice = gets.chomp
+      break if ['y', 'n'].include? choice
+      puts 'Sorry, that is not a valid option!'
+    end
+    choice == 'y' ? true : false
   end
 
   def play
     display_welcome_message
-    human.choose
-    computer.choose
-    display_winner
+    loop do
+      human.choose
+      computer.choose
+      display_winner
+      break unless play_again?
+    end
     display_goodbye_message
   end
 end
