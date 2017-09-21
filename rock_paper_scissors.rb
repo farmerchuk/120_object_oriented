@@ -19,10 +19,10 @@ class Human < Player
     loop do
       print 'Please choose rock, paper or scissors: '
       choice = gets.chomp
-      break if ['paper', 'rock', 'scissors'].include? choice
+      break if Sign::SIGNS.include? choice
       puts 'Sorry, that is not a valid option!'
     end
-    self.sign = choice
+    self.sign = Sign.new(choice)
   end
 end
 
@@ -32,7 +32,45 @@ class Computer < Player
   end
 
   def choose
-    self.sign = ['rock', 'paper', 'scissors'].sample
+    self.sign = Sign.new(Sign::SIGNS.sample)
+  end
+end
+
+class Sign
+  SIGNS = ['rock', 'paper', 'scissors']
+
+  attr_reader :value
+
+  def initialize(value)
+    @value = value
+  end
+
+  def rock?
+    value == 'rock'
+  end
+
+  def paper?
+    value == 'paper'
+  end
+
+  def scissors?
+    value == 'scissors'
+  end
+
+  def >(other_sign)
+    if rock?
+      true if other_sign.scissors?
+    elsif paper?
+      true if other_sign.rock?
+    elsif scissors?
+      true if other_sign.paper?
+    else
+      false
+    end
+  end
+
+  def to_s
+    value
   end
 end
 
@@ -55,16 +93,25 @@ class RPSGame
   def display_winner
     puts "#{human.name} chose: #{human.sign}"
     puts "#{computer.name} chose: #{computer.sign}"
-    case
-    when human.sign == computer.sign
-      puts "It's a tie!"
-    when human.sign == 'rock' && computer.sign == 'scissors' ||
-         human.sign == 'paper' && computer.sign == 'rock' ||
-         human.sign == 'scissors' && computer.sign == 'paper'
+
+    if human.sign > computer.sign
       puts "#{human.name} wins!"
-    else
+    elsif computer.sign > human.sign
       puts "#{computer.name} wins!"
+    else
+      puts "It's a tie!"
     end
+
+    # case
+    # when human.sign == computer.sign
+    #   puts "It's a tie!"
+    # when human.sign == 'rock' && computer.sign == 'scissors' ||
+    #      human.sign == 'paper' && computer.sign == 'rock' ||
+    #      human.sign == 'scissors' && computer.sign == 'paper'
+    #   puts "#{human.name} wins!"
+    # else
+    #   puts "#{computer.name} wins!"
+    # end
   end
 
   def play_again?
