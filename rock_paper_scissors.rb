@@ -60,6 +60,21 @@ class RPSGame
     puts 'Thanks for playing Rock, Paper, Scissors!'
   end
 
+  def display_winner
+    puts "You chose: #{human.sign}"
+    puts "Computer chose: #{computer.sign}"
+    case
+    when human.sign == computer.sign
+      puts "It's a tie!"
+    when human.sign == 'rock' && computer.sign == 'scissors' ||
+         human.sign == 'paper' && computer.sign == 'rock' ||
+         human.sign == 'scissors' && computer.sign == 'paper'
+      puts 'You win!'
+    else
+      puts 'Computer wins!'
+    end 
+  end
+
   def play
     display_welcome_message
     human.choose
