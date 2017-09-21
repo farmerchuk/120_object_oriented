@@ -101,17 +101,6 @@ class RPSGame
     else
       puts "It's a tie!"
     end
-
-    # case
-    # when human.sign == computer.sign
-    #   puts "It's a tie!"
-    # when human.sign == 'rock' && computer.sign == 'scissors' ||
-    #      human.sign == 'paper' && computer.sign == 'rock' ||
-    #      human.sign == 'scissors' && computer.sign == 'paper'
-    #   puts "#{human.name} wins!"
-    # else
-    #   puts "#{computer.name} wins!"
-    # end
   end
 
   def play_again?
