@@ -58,15 +58,8 @@ class Sign
   end
 
   def >(other_sign)
-    if rock?
-      true if other_sign.scissors?
-    elsif paper?
-      true if other_sign.rock?
-    elsif scissors?
-      true if other_sign.paper?
-    else
-      false
-    end
+    rock? && other_sign.scissors? || paper? && other_sign.rock? ||
+      scissors? && other_sign.paper?
   end
 
   def to_s
@@ -90,10 +83,12 @@ class RPSGame
     puts 'Thanks for playing Rock, Paper, Scissors!'
   end
 
-  def display_winner
+  def display_moves
     puts "#{human.name} chose: #{human.sign}"
     puts "#{computer.name} chose: #{computer.sign}"
+  end
 
+  def display_winner
     if human.sign > computer.sign
       puts "#{human.name} wins!"
     elsif computer.sign > human.sign
@@ -121,6 +116,7 @@ class RPSGame
       computer.set_name
       human.choose
       computer.choose
+      display_moves
       display_winner
       break unless play_again?
     end
