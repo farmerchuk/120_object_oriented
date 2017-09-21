@@ -1,9 +1,25 @@
 class Player
-  attr_accessor :sign
+  attr_accessor :sign, :name
 
   def initialize(player_type = :human)
     @player_type = player_type
     @sign = nil
+    @name = nil
+  end
+
+  def set_name
+    if human?
+      name = nil
+      loop do
+        print 'What is your name? '
+        name = gets.chomp
+        break unless name.empty?
+        puts 'Please enter a name!'
+      end
+      self.name = name
+    else
+      self.name = ['R2D2', 'C3PO', 'Walle', 'Chappie'].sample
+    end
   end
 
   def choose
@@ -61,17 +77,17 @@ class RPSGame
   end
 
   def display_winner
-    puts "You chose: #{human.sign}"
-    puts "Computer chose: #{computer.sign}"
+    puts "#{human.name} chose: #{human.sign}"
+    puts "#{computer.name} chose: #{computer.sign}"
     case
     when human.sign == computer.sign
       puts "It's a tie!"
     when human.sign == 'rock' && computer.sign == 'scissors' ||
          human.sign == 'paper' && computer.sign == 'rock' ||
          human.sign == 'scissors' && computer.sign == 'paper'
-      puts 'You win!'
+      puts "#{human.name} wins!"
     else
-      puts 'Computer wins!'
+      puts "#{computer.name} wins!"
     end
   end
 
@@ -89,6 +105,8 @@ class RPSGame
   def play
     display_welcome_message
     loop do
+      human.set_name
+      computer.set_name
       human.choose
       computer.choose
       display_winner
