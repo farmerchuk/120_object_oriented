@@ -1,5 +1,9 @@
 class Player
-  attr_accessor :sign, :name
+  attr_accessor :sign, :name, :score
+
+  def initialize
+    @score = 0
+  end
 end
 
 class Human < Player
@@ -68,6 +72,8 @@ class Sign
 end
 
 class RPSGame
+  MAX_SCORE = 5
+
   attr_accessor :human, :computer
 
   def initialize
@@ -88,14 +94,50 @@ class RPSGame
     puts "#{computer.name} chose: #{computer.sign}"
   end
 
-  def display_winner
+  def determine_winner
     if human.sign > computer.sign
-      puts "#{human.name} wins!"
+      human
     elsif computer.sign > human.sign
+      computer
+    else
+      nil
+    end
+  end
+
+  def update_player_points
+    winner = determine_winner
+    return if winner.nil?
+    winner.score += 1
+  end
+
+  def game_winner?
+    human.score == MAX_SCORE || computer.score == MAX_SCORE
+  end
+
+  def determine_game_winner
+    return nil unless game_winner?
+    human.score == MAX_SCORE ? human : computer
+  end
+
+  def display_round_winner
+    winner = determine_winner
+    if winner == human
+      puts "#{human.name} wins!"
+    elsif winner == computer
       puts "#{computer.name} wins!"
     else
       puts "It's a tie!"
     end
+  end
+
+  def display_game_winner
+    game_winner = determine_game_winner
+    puts "#{game_winner.name} wins the game!"
+  end
+
+  def display_player_points
+    puts "#{human.name} has #{human.score} point(s)."
+    puts "#{computer.name} has #{computer.score} point(s)."
   end
 
   def play_again?
@@ -109,16 +151,28 @@ class RPSGame
     choice == 'y' ? true : false
   end
 
+  def reset_scores
+    human.score = 0
+    computer.score = 0
+  end
+
   def play
     display_welcome_message
+    human.set_name
+    computer.set_name
     loop do
-      human.set_name
-      computer.set_name
-      human.choose
-      computer.choose
-      display_moves
-      display_winner
+      loop do
+        human.choose
+        computer.choose
+        update_player_points
+        display_moves
+        display_round_winner
+        display_player_points
+        break if game_winner?
+      end
+      display_game_winner
       break unless play_again?
+      reset_scores
     end
     display_goodbye_message
   end
