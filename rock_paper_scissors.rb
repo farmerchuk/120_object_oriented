@@ -1,8 +1,20 @@
 class Player
-  attr_accessor :sign, :name, :score
+  attr_accessor :sign, :name, :score, :history
 
   def initialize
     @score = 0
+    @history = []
+  end
+
+  def favorite_sign
+    return nil if history.empty?
+    counts = Hash.new 0
+    history.each { |sign| counts[sign.to_s] += 1  }
+    counts.max_by { |_, count| count }.first
+  end
+
+  def add_sign_to_history
+    self.history << sign
   end
 end
 
@@ -27,6 +39,7 @@ class Human < Player
       puts 'Sorry, that is not a valid option!'
     end
     self.sign = Sign.create(choice)
+    add_sign_to_history
   end
 end
 
@@ -35,13 +48,26 @@ class Computer < Player
     self.name = ['R2D2', 'C3PO', 'Walle', 'Chappie'].sample
   end
 
-  def choose
-    self.sign = Sign.create(Sign::SIGNS.sample)
+  def choose(player_fav_sign)
+    if player_fav_sign.nil?
+      self.sign = Sign.create(Sign::SIGNS.sample)
+      add_sign_to_history
+    else
+      self.sign = Sign.create(Sign::WINNING_SIGNS[player_fav_sign].sample)
+      add_sign_to_history
+    end
   end
 end
 
 class Sign
   SIGNS = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+  WINNING_SIGNS = {
+    'rock' => ['paper', 'spock'],
+    'paper' => ['lizard', 'scissors'],
+    'scissors' => ['rock', 'spock'],
+    'lizard' => ['rock', 'scissors'],
+    'spock' => ['lizard', 'paper'],
+  }
 
   def self.create(value)
     return Rock.new if value == 'rock'
@@ -177,8 +203,8 @@ class RPSGame
     computer.set_name
     loop do
       loop do
+        computer.choose(human.favorite_sign)
         human.choose
-        computer.choose
         update_player_points
         display_moves
         display_round_winner
