@@ -26,7 +26,7 @@ class Human < Player
       break if Sign::SIGNS.include? choice
       puts 'Sorry, that is not a valid option!'
     end
-    self.sign = Sign.new(choice)
+    self.sign = Sign.create(choice)
   end
 end
 
@@ -36,56 +36,53 @@ class Computer < Player
   end
 
   def choose
-    self.sign = Sign.new(Sign::SIGNS.sample)
+    self.sign = Sign.create(Sign::SIGNS.sample)
   end
 end
 
 class Sign
   SIGNS = ['rock', 'paper', 'scissors', 'lizard', 'spock']
-  SIGN_PRECEDENCE = {
-    'rock' => ['scissors', 'lizard'],
-    'paper' => ['rock', 'spock'],
-    'scissors' => ['paper', 'lizard'],
-    'lizard' => ['spock', 'paper'],
-    'spock' => ['scissors', 'rock']
-  }
 
-  attr_reader :value
-
-  def initialize(value)
-    @value = value
-  end
-
-  def rock?
-    value == 'rock'
-  end
-
-  def paper?
-    value == 'paper'
-  end
-
-  def scissors?
-    value == 'scissors'
-  end
-
-  def lizard?
-    value == 'lizard'
-  end
-
-  def spock?
-    value == 'spock'
-  end
-
-  def >(other_sign)
-    rock? && SIGN_PRECEDENCE['rock'].include?(other_sign.to_s) ||
-      paper? && SIGN_PRECEDENCE['paper'].include?(other_sign.to_s) ||
-      scissors? && SIGN_PRECEDENCE['scissors'].include?(other_sign.to_s) ||
-      lizard? && SIGN_PRECEDENCE['lizard'].include?(other_sign.to_s) ||
-      spock? && SIGN_PRECEDENCE['spock'].include?(other_sign.to_s)
+  def self.create(value)
+    return Rock.new if value == 'rock'
+    return Paper.new if value == 'paper'
+    return Scissors.new if value == 'scissors'
+    return Lizard.new if value == 'lizard'
+    return Spock.new if value == 'spock'
   end
 
   def to_s
-    value
+    self.class.to_s.downcase
+  end
+end
+
+class Rock < Sign
+  def >(other_sign)
+    other_sign.class == Scissors || other_sign.class == Lizard
+  end
+end
+
+class Paper < Sign
+  def >(other_sign)
+    other_sign.class == Rock || other_sign.class == Spock
+  end
+end
+
+class Scissors < Sign
+  def >(other_sign)
+    other_sign.class == Paper || other_sign.class == Lizard
+  end
+end
+
+class Lizard < Sign
+  def >(other_sign)
+    other_sign.class == Paper || other_sign.class == Spock
+  end
+end
+
+class Spock < Sign
+  def >(other_sign)
+    other_sign.class == Rock || other_sign.class == Scissors
   end
 end
 
