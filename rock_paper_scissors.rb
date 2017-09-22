@@ -21,7 +21,7 @@ class Human < Player
   def choose
     choice = nil
     loop do
-      print 'Please choose rock, paper or scissors: '
+      print "Please choose from: #{Sign::SIGNS.join(', ')}: "
       choice = gets.chomp
       break if Sign::SIGNS.include? choice
       puts 'Sorry, that is not a valid option!'
@@ -41,7 +41,14 @@ class Computer < Player
 end
 
 class Sign
-  SIGNS = ['rock', 'paper', 'scissors']
+  SIGNS = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+  SIGN_PRECEDENCE = {
+    'rock' => ['scissors', 'lizard'],
+    'paper' => ['rock', 'spock'],
+    'scissors' => ['paper', 'lizard'],
+    'lizard' => ['spock', 'paper'],
+    'spock' => ['scissors', 'rock']
+  }
 
   attr_reader :value
 
@@ -61,9 +68,20 @@ class Sign
     value == 'scissors'
   end
 
+  def lizard?
+    value == 'lizard'
+  end
+
+  def spock?
+    value == 'spock'
+  end
+
   def >(other_sign)
-    rock? && other_sign.scissors? || paper? && other_sign.rock? ||
-      scissors? && other_sign.paper?
+    rock? && SIGN_PRECEDENCE['rock'].include?(other_sign.to_s) ||
+      paper? && SIGN_PRECEDENCE['paper'].include?(other_sign.to_s) ||
+      scissors? && SIGN_PRECEDENCE['scissors'].include?(other_sign.to_s) ||
+      lizard? && SIGN_PRECEDENCE['lizard'].include?(other_sign.to_s) ||
+      spock? && SIGN_PRECEDENCE['spock'].include?(other_sign.to_s)
   end
 
   def to_s
@@ -82,11 +100,11 @@ class RPSGame
   end
 
   def display_welcome_message
-    puts 'Welcome to Rock, Paper, Scissors!'
+    puts 'Welcome to Rock, Paper, Scissors, Lizard, Spock!'
   end
 
   def display_goodbye_message
-    puts 'Thanks for playing Rock, Paper, Scissors!'
+    puts 'Thanks for playing Rock, Paper, Scissors, Lizard, Spock!'
   end
 
   def display_moves
