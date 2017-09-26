@@ -57,7 +57,8 @@ class Square
 end
 
 class Player
-  attr_reader :marker, :name, :score
+  attr_accessor :score
+  attr_reader :marker, :name
 
   def initialize(name, marker)
     @marker = marker
@@ -66,7 +67,11 @@ class Player
   end
 
   def increment_score
-    score += 1
+    self.score += 1
+  end
+
+  def score_reset
+    self.score = 0
   end
 
   def to_s
@@ -78,6 +83,7 @@ class TTTGame
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # columns
                   [[1, 5, 9], [3, 5, 7]]              # diagonal
+  WINNING_SCORE = 5
 
   def initialize
     @board = Board.new
@@ -88,26 +94,38 @@ class TTTGame
 
   def play
     display_welcome_message
-
     loop do
-      display_board
-
-      loop do
-        current_player_moves
-        display_board
-        break if winner? || board.full?
-      end
-      display_result
+      game_round_loop
+      display_game_winner
       break unless play_again?
-      reset_board
+      reset_game
     end
-
     display_goodbye_message
   end
 
   private
 
   attr_reader :board, :human, :computer, :player_turn_order
+
+  def player_turn_loop
+    loop do
+      current_player_moves
+      display_board
+      break if round_winner? || board.full?
+    end
+  end
+
+  def game_round_loop
+    loop do
+      display_board
+      player_turn_loop
+      adjust_scores
+      display_result
+      break if game_winner?
+      continue
+      reset_round
+    end
+  end
 
   def clear
     system 'clear'
@@ -124,11 +142,17 @@ class TTTGame
 
   def display_board
     clear
-    puts "#{human.name} is an #{human.marker}"
-    puts "#{computer.name} is an #{computer.marker}"
+    display_player_info
     puts
     board.draw
     puts
+  end
+
+  def display_player_info
+    puts "#{human.name} is an #{human.marker} " \
+         "with a score of #{human.score}"
+    puts "#{computer.name} is an #{computer.marker} " \
+         "with a score of #{computer.score}"
   end
 
   def current_player_moves
@@ -162,7 +186,7 @@ class TTTGame
     board[input] = computer.marker
   end
 
-  def winner?
+  def round_winner?
     !!winning_player
   end
 
@@ -177,14 +201,27 @@ class TTTGame
     nil
   end
 
+  def game_winner?
+    return false unless round_winner?
+    winning_player.score >= WINNING_SCORE
+  end
+
+  def adjust_scores
+    winning_player.increment_score if round_winner?
+  end
+
   def display_result
     display_board
 
-    if board.full? && !winner?
+    if board.full? && !round_winner?
       puts "It's a tie!"
     else
-      puts "The winner is #{winning_player}!"
+      puts "The round winner is #{winning_player}!"
     end
+  end
+
+  def display_game_winner
+    puts "The winner of #{WINNING_SCORE} rounds is #{winning_player}!"
   end
 
   def play_again?
@@ -198,8 +235,20 @@ class TTTGame
     input == 'y'
   end
 
-  def reset_board
+  def continue
+    puts
+    print 'Hit RETURN to continue...'
+    gets
+  end
+
+  def reset_round
     board.reset
+  end
+
+  def reset_game
+    board.reset
+    human.score_reset
+    computer.score_reset
   end
 end
 
