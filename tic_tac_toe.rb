@@ -1,8 +1,4 @@
 class Board
-  WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
-                  [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # columns
-                  [[1, 5, 9], [3, 5, 7]]              # diagonal
-
   attr_reader :squares
 
   def initialize
@@ -37,19 +33,6 @@ class Board
     empty_square_positions.empty?
   end
 
-  def winner?
-    !!winning_marker
-  end
-
-  def winning_marker
-    TTTGame::PLAYERS.each_value do |marker|
-      WINNING_LINES.each do |line|
-        return marker if line.all? { |pos| squares[pos].marker == marker }
-      end
-    end
-    nil
-  end
-
   def reset
     initialize
   end
@@ -74,21 +57,33 @@ class Square
 end
 
 class Player
-  attr_reader :marker
+  attr_reader :marker, :name, :score
 
-  def initialize(marker)
+  def initialize(name, marker)
     @marker = marker
+    @score = 0
+    @name = name
+  end
+
+  def increment_score
+    score += 1
+  end
+
+  def to_s
+    name
   end
 end
 
 class TTTGame
-  PLAYERS = { human: 'X', computer: 'O' }
+  WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
+                  [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # columns
+                  [[1, 5, 9], [3, 5, 7]]              # diagonal
 
   def initialize
     @board = Board.new
-    @human = Player.new(PLAYERS[:human])
-    @computer = Player.new(PLAYERS[:computer])
-    @turn_order = PLAYERS.keys
+    @human = Player.new('Jason', 'X')
+    @computer = Player.new('R2D2', 'O')
+    @player_turn_order = [@human, @computer]
   end
 
   def play
@@ -100,7 +95,7 @@ class TTTGame
       loop do
         current_player_moves
         display_board
-        break if board.winner? || board.full?
+        break if winner? || board.full?
       end
       display_result
       break unless play_again?
@@ -112,7 +107,7 @@ class TTTGame
 
   private
 
-  attr_reader :board, :human, :computer, :turn_order
+  attr_reader :board, :human, :computer, :player_turn_order
 
   def clear
     system 'clear'
@@ -129,26 +124,27 @@ class TTTGame
 
   def display_board
     clear
-    puts "You're a #{human.marker}"
-    puts "Computer is a #{computer.marker}"
+    puts "#{human.name} is an #{human.marker}"
+    puts "#{computer.name} is an #{computer.marker}"
     puts
     board.draw
     puts
   end
 
   def current_player_moves
-    turn_order.first == :human ? human_moves : computer_moves
+    player_turn_order.first == human ? human_moves : computer_moves
     set_next_player_turn
   end
 
   def set_next_player_turn
-    turn_order.reverse!
+    player_turn_order.reverse!
   end
 
   def human_moves
     input = nil
+    formatted_output = joiner(board.empty_square_positions).join(', ')
     loop do
-      print "Choose a square from #{board.empty_square_positions.join(', ')}: "
+      print "Choose a square from #{formatted_output}: "
       input = gets.chomp.to_i
       break if board.empty_square_positions.include?(input)
       puts 'Sorry, that is not a valid choice...'
@@ -156,18 +152,38 @@ class TTTGame
     board[input] = human.marker
   end
 
+  def joiner(array)
+    array[-1] = ('or ' + array[-1].to_s) if array.size > 1
+    array
+  end
+
   def computer_moves
     input = board.empty_square_positions.to_a.sample
     board[input] = computer.marker
   end
 
+  def winner?
+    !!winning_player
+  end
+
+  def winning_player
+    player_turn_order.each do |player|
+      WINNING_LINES.each do |line|
+        if line.all? { |pos| board.squares[pos].marker == player.marker }
+          return player
+        end
+      end
+    end
+    nil
+  end
+
   def display_result
     display_board
 
-    if board.full? && !board.winner?
+    if board.full? && !winner?
       puts "It's a tie!"
     else
-      puts "The winner is #{board.winning_marker}!"
+      puts "The winner is #{winning_player}!"
     end
   end
 
