@@ -43,6 +43,10 @@ class Board
     end
     nil
   end
+
+  def reset
+    initialize
+  end
 end
 
 class Square
@@ -133,19 +137,42 @@ class TTTGame
     end
   end
 
+  def play_again?
+    input = nil
+    loop do
+      print 'Would you like to play again? (y/n): '
+      input = gets.chomp.downcase
+      break if ['y', 'n'].include?(input)
+      puts 'Sorry, that is not a valid choice...'
+    end
+    input == 'y'
+  end
+
+  def reset_board
+    board.reset
+  end
+
   def play
     display_welcome_message
-    display_board
-    loop do
-      human_moves
-      break if board.winner? || board.full?
-      display_board
 
-      computer_moves
-      break if board.winner? || board.full?
-      display_board
+    loop do
+    display_board
+
+      loop do
+        human_moves
+        break if board.winner? || board.full?
+        display_board
+
+        computer_moves
+        break if board.winner? || board.full?
+
+        display_board
+      end
+      display_result
+      break unless play_again?
+      reset_board
     end
-    display_result
+
     display_goodbye_message
   end
 end
