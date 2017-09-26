@@ -13,6 +13,7 @@ class Board
     (1..9).each_with_object({}) { |sqr, board| board[sqr] = Square.new }
   end
 
+  # rubocop:disable Metrics/AbcSize
   def draw
     puts "     |     |     "
     puts "  #{squares[1]}  |  #{squares[2]}  |  #{squares[3]}  "
@@ -22,6 +23,7 @@ class Board
     puts "  #{squares[7]}  |  #{squares[8]}  |  #{squares[9]}  "
     puts "     |     |     "
   end
+  # rubocop:enable Metrics/AbcSize
 
   def []=(position, marker)
     squares[position].marker = marker
@@ -40,7 +42,7 @@ class Board
   end
 
   def winning_marker
-    TTTGame::PLAYERS.each do |player, marker|
+    TTTGame::PLAYERS.each_value do |marker|
       WINNING_LINES.each do |line|
         return marker if line.all? { |pos| squares[pos].marker == marker }
       end
@@ -93,7 +95,7 @@ class TTTGame
     display_welcome_message
 
     loop do
-    display_board
+      display_board
 
       loop do
         current_player_moves
