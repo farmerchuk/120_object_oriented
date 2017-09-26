@@ -57,10 +57,10 @@ class Square
 end
 
 class Player
-  attr_accessor :score
-  attr_reader :marker, :name
+  attr_accessor :score, :marker
+  attr_reader :name
 
-  def initialize(name, marker)
+  def initialize(name, marker = nil)
     @marker = marker
     @score = 0
     @name = name
@@ -72,6 +72,17 @@ class Player
 
   def score_reset
     self.score = 0
+  end
+
+  def choose_marker
+    input = nil
+    loop do
+      print "Would you like to play as 'X' or 'O'? "
+      input = gets.chomp.upcase
+      break if ['X', 'O'].include?(input)
+      puts 'Sorry, that is not a valid option...'
+    end
+    self.marker = input
   end
 
   def to_s
@@ -87,13 +98,14 @@ class TTTGame
 
   def initialize
     @board = Board.new
-    @human = Player.new('Jason', 'X')
-    @computer = Player.new('R2D2', 'O')
+    @human = Player.new('Jason')
+    @computer = Player.new('R2D2')
     @player_turn_order = [@human, @computer]
   end
 
   def play
     display_welcome_message
+    set_player_markers
     loop do
       game_round_loop
       display_game_winner
@@ -132,12 +144,18 @@ class TTTGame
   end
 
   def display_welcome_message
+    clear
     puts 'Welcome to Tic-Tac-Toe!'
     puts
   end
 
   def display_goodbye_message
     puts 'Thanks for playing!'
+  end
+
+  def set_player_markers
+    human.choose_marker
+    human.marker == 'X' ? computer.marker = 'O' : computer.marker = 'X'
   end
 
   def display_board
