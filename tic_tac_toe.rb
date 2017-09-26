@@ -13,16 +13,22 @@ class Board
     (1..9).each_with_object({}) { |sqr, board| board[sqr] = Square.new }
   end
 
-  def square_at(position)
-    squares[position]
+  def draw
+    puts "     |     |     "
+    puts "  #{squares[1]}  |  #{squares[2]}  |  #{squares[3]}  "
+    puts "-----|-----|-----"
+    puts "  #{squares[4]}  |  #{squares[5]}  |  #{squares[6]}  "
+    puts "-----|-----|-----"
+    puts "  #{squares[7]}  |  #{squares[8]}  |  #{squares[9]}  "
+    puts "     |     |     "
   end
 
-  def set_square_at(position, marker)
+  def []=(position, marker)
     squares[position].marker = marker
   end
 
   def empty_square_positions
-    @squares.keys.select { |key| @squares[key].unmarked? }
+    squares.keys.select { |key| squares[key].unmarked? }
   end
 
   def full?
@@ -30,15 +36,13 @@ class Board
   end
 
   def winner?
-    !!detect_winner
+    !!winning_marker
   end
 
-  def detect_winner
-    WINNING_LINES.each do |line|
-      if line.all? { |pos| square_at(pos).marker == TTTGame::HUMAN_MARKER }
-        return TTTGame::HUMAN_MARKER
-      elsif line.all? { |pos| square_at(pos).marker == TTTGame::COMP_MARKER }
-        return TTTGame::COMP_MARKER
+  def winning_marker
+    TTTGame::PLAYERS.each do |player, marker|
+      WINNING_LINES.each do |line|
+        return marker if line.all? { |pos| squares[pos].marker == marker }
       end
     end
     nil
@@ -76,15 +80,40 @@ class Player
 end
 
 class TTTGame
-  HUMAN_MARKER = 'X'
-  COMP_MARKER = 'O'
-
-  attr_reader :board, :human, :computer
+  PLAYERS = { human: 'X', computer: 'O' }
 
   def initialize
     @board = Board.new
-    @human = Player.new(HUMAN_MARKER)
-    @computer = Player.new(COMP_MARKER)
+    @human = Player.new(PLAYERS[:human])
+    @computer = Player.new(PLAYERS[:computer])
+    @turn_order = PLAYERS.keys
+  end
+
+  def play
+    display_welcome_message
+
+    loop do
+    display_board
+
+      loop do
+        current_player_moves
+        display_board
+        break if board.winner? || board.full?
+      end
+      display_result
+      break unless play_again?
+      reset_board
+    end
+
+    display_goodbye_message
+  end
+
+  private
+
+  attr_reader :board, :human, :computer, :turn_order
+
+  def clear
+    system 'clear'
   end
 
   def display_welcome_message
@@ -97,18 +126,21 @@ class TTTGame
   end
 
   def display_board
-    system 'clear'
+    clear
     puts "You're a #{human.marker}"
     puts "Computer is a #{computer.marker}"
     puts
-    puts "     |     |     "
-    puts "  #{board.square_at(1)}  |  #{board.square_at(2)}  |  #{board.square_at(3)}  "
-    puts "-----|-----|-----"
-    puts "  #{board.square_at(4)}  |  #{board.square_at(5)}  |  #{board.square_at(6)}  "
-    puts "-----|-----|-----"
-    puts "  #{board.square_at(7)}  |  #{board.square_at(8)}  |  #{board.square_at(9)}  "
-    puts "     |     |     "
+    board.draw
     puts
+  end
+
+  def current_player_moves
+    turn_order.first == :human ? human_moves : computer_moves
+    set_next_player_turn
+  end
+
+  def set_next_player_turn
+    turn_order.reverse!
   end
 
   def human_moves
@@ -119,12 +151,12 @@ class TTTGame
       break if board.empty_square_positions.include?(input)
       puts 'Sorry, that is not a valid choice...'
     end
-    board.set_square_at(input, human.marker)
+    board[input] = human.marker
   end
 
   def computer_moves
     input = board.empty_square_positions.to_a.sample
-    board.set_square_at(input, computer.marker)
+    board[input] = computer.marker
   end
 
   def display_result
@@ -133,7 +165,7 @@ class TTTGame
     if board.full? && !board.winner?
       puts "It's a tie!"
     else
-      puts "The winner is #{board.detect_winner}!"
+      puts "The winner is #{board.winning_marker}!"
     end
   end
 
@@ -150,30 +182,6 @@ class TTTGame
 
   def reset_board
     board.reset
-  end
-
-  def play
-    display_welcome_message
-
-    loop do
-    display_board
-
-      loop do
-        human_moves
-        break if board.winner? || board.full?
-        display_board
-
-        computer_moves
-        break if board.winner? || board.full?
-
-        display_board
-      end
-      display_result
-      break unless play_again?
-      reset_board
-    end
-
-    display_goodbye_message
   end
 end
 
