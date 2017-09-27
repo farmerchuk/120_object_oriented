@@ -1,7 +1,9 @@
 class Player
-  def initialize
-    # what would the "data" or "states" of a Player object entail?
-    # maybe cards? a name?
+  attr_reader :name, :hand
+
+  def initialize(name)
+    @name = name
+    @hand = []
   end
 
   def hit
@@ -10,53 +12,37 @@ class Player
   def stay
   end
 
-  def busted?
+  def hand_value
+
   end
 
-  def total
-    # definitely looks like we need to know about "cards" to produce some total
-  end
-end
-
-class Dealer
-  def initialize
-    # seems like very similar to Player... do we even need this?
-  end
-
-  def deal
-    # does the dealer or the deck deal?
-  end
-
-  def hit
-  end
-
-  def stay
+  def display_hand
+    puts "#{name} has these cards:"
+    hand.each { |card| puts card.to_s }
+    puts
   end
 
   def busted?
   end
-
-  def total
-  end
-end
-
-class Participant
-  # what goes in here? all the redundant behaviors from Player and Dealer?
 end
 
 class Deck
-  SUITS = %w[HEARTS DIAMONDS SPADES CLUBS]
-  NAMES = %w[2 3 4 5 6 7 8 9 10 JACK QUEEN KING ACE]
+  def initialize
+    @cards = new_deck_of_cards
+    shuffle_cards
+  end
+
+  def deal_card
+    cards.pop
+  end
+
+  private
 
   attr_reader :cards
 
-  def initialize
-    @cards = new_deck_of_cards
-  end
-
   def new_deck_of_cards
-    SUITS.each_with_object([]) do |suit, cards|
-      NAMES.each do |name|
+    Card::SUITS.each_with_object([]) do |suit, cards|
+      Card::NAMES.each do |name|
         value = name.to_i
         value = Card::FACE_VALUE if value == 0
         value = Card::ACE_VALUE if name == 'ACE'
@@ -65,12 +51,14 @@ class Deck
     end
   end
 
-  def deal_card
-
+  def shuffle_cards
+    5.times { cards.shuffle! }
   end
 end
 
 class Card
+  SUITS = %w[HEARTS DIAMONDS SPADES CLUBS]
+  NAMES = %w[2 3 4 5 6 7 8 9 10 JACK QUEEN KING ACE]
   FACE_VALUE = 10
   ACE_VALUE = 11
 
@@ -89,15 +77,15 @@ end
 
 class Game
   def initialize
-    @deck
-    @player
-    @dealer
+    @deck = Deck.new
+    @player = Player.new('Jason')
+    @dealer = Player.new('Dealer')
   end
 
   def start
-    Deck.new.cards.each {|card| puts card.to_s}
-    # deal_cards
-    # show_initial_cards
+    welcome_message
+    deal_cards
+    show_initial_cards
     # player_turn
     # dealer_turn
     # show_result
@@ -105,6 +93,27 @@ class Game
 
   private
 
+  attr_reader :deck, :player, :dealer
+
+  def clear
+    system 'clear'
+  end
+
+  def welcome_message
+    clear
+    puts "Welcome to Twenty-One!"
+    puts
+  end
+
+  def deal_cards
+    2.times { player.hand << deck.deal_card }
+    2.times { dealer.hand << deck.deal_card }
+  end
+
+  def show_initial_cards
+    player.display_hand
+    dealer.display_hand
+  end
 end
 
 Game.new.start
