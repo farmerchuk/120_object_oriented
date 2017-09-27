@@ -11,14 +11,13 @@ module Hand
   def hand_value
     aces = hand.count { |card| card.name == 'ACE'}
     value = hand.map(&:value).reduce(:+)
-    return value if aces == 0
-    ace_adjusted_value(value, aces) if (value > 21) && (aces > 0)
+    value <= 21 ? value : ace_adjusted_value(value, aces)
   end
 
   private
 
   def ace_adjusted_value(value, num_of_aces)
-    return value if (num_of_aces == 0) || (value <= 21)
+    return value if num_of_aces == 0
     ace_adjusted_value(value - 10, num_of_aces - 1)
   end
 end
