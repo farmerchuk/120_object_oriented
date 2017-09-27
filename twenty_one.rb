@@ -1,6 +1,6 @@
 module Hand
   MAX_VALUE = 21
-  DEALER_STAND = 17
+  DEALER_STAND_ON = 17
 
   attr_reader :hand
 
@@ -12,9 +12,13 @@ module Hand
   end
 
   def hand_value
-    aces = hand.count { |card| card.name == 'ACE'}
+    aces = hand.count { |card| card.name == 'ACE' }
     value = hand.map(&:value).reduce(:+)
     value <= MAX_VALUE ? value : ace_adjusted_value(value, aces)
+  end
+
+  def busted?
+    hand_value > MAX_VALUE
   end
 
   private
@@ -38,10 +42,6 @@ class Player
   def hit(card)
     hand << card
   end
-
-  def busted?
-    hand_value > MAX_VALUE
-  end
 end
 
 class Dealer < Player
@@ -52,23 +52,29 @@ class Dealer < Player
   end
 
   def stay?
-    hand_value >= DEALER_STAND
+    hand_value >= DEALER_STAND_ON
   end
 
   def display_hand(options = {})
     puts "#{name} has these cards:"
-    if options[:hide]
-      puts '<HIDDEN CARD>'
-      hand.each_with_index do |card, idx|
-        next if idx == 0
-        puts card.to_s
-      end
-      puts 'Total value of: ?'
-    else
-      hand.each { |card| puts card.to_s }
-      puts "Total value of: #{hand_value}"
-    end
+    options[:hide] ? hide_cards : show_all_cards
     puts
+  end
+
+  private
+
+  def hide_cards
+    puts '<HIDDEN CARD>'
+    hand.each_with_index do |card, idx|
+      next if idx == 0
+      puts card.to_s
+    end
+    puts 'Total value of: ?'
+  end
+
+  def show_all_cards
+    hand.each { |card| puts card.to_s }
+    puts "Total value of: #{hand_value}"
   end
 end
 
@@ -190,7 +196,7 @@ class Game
   def dealer_turn
     loop do
       break if player.busted?
-      (dealer.busted? || dealer.stay?) ? break : dealer.hit(deck.deal_card)
+      dealer.busted? || dealer.stay? ? break : dealer.hit(deck.deal_card)
       display_table
       sleep 1
     end
@@ -203,6 +209,7 @@ class Game
     choice == 'y'
   end
 
+  # rubocop:disable Metrics/AbcSize
   def display_results
     if player.busted?
       puts 'Sorry, you busted! Dealer wins the round.'
@@ -216,6 +223,7 @@ class Game
       puts "It's a tie! No one wins the round."
     end
   end
+  # rubocop:enable Metrics/AbcSize
 end
 
 Game.new.start
