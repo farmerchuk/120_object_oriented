@@ -6,14 +6,8 @@ class Player
     @hand = []
   end
 
-  def hit
-  end
-
-  def stay
-  end
-
-  def hand_value
-
+  def hit(card)
+    hand << card
   end
 
   def display_hand
@@ -23,6 +17,21 @@ class Player
   end
 
   def busted?
+    hand_value > 21
+  end
+
+  private
+
+  def hand_value
+    hand.map(&:value).reduce(:+)
+  end
+end
+
+class Dealer < Player
+  MAX_VALUE = 17
+
+  def stay?
+    hand_value >= MAX_VALUE
   end
 end
 
@@ -79,15 +88,17 @@ class Game
   def initialize
     @deck = Deck.new
     @player = Player.new('Jason')
-    @dealer = Player.new('Dealer')
+    @dealer = Dealer.new('Dealer')
   end
 
   def start
     welcome_message
     deal_cards
-    show_initial_cards
-    # player_turn
-    # dealer_turn
+    display_table
+    player_turn
+    display_table
+    dealer_turn
+    display_table
     # show_result
   end
 
@@ -110,9 +121,33 @@ class Game
     2.times { dealer.hand << deck.deal_card }
   end
 
-  def show_initial_cards
+  def display_table
+    clear
     player.display_hand
     dealer.display_hand
+  end
+
+  def player_turn
+    loop do
+      hit? ? player.hit(deck.deal_card) : break
+      break if player.busted?
+      display_table
+    end
+  end
+
+  def dealer_turn
+    loop do
+      break if player.busted?
+      dealer.busted? || dealer.stay? ? break : dealer.hit(deck.deal_card)
+      display_table
+      sleep 1
+    end
+  end
+
+  def hit?
+    print 'Would you like another card? (y/n): '
+    choice = gets.chomp.downcase
+    choice == 'y'
   end
 end
 
