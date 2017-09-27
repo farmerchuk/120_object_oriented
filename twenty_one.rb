@@ -1,4 +1,7 @@
 module Hand
+  MAX_VALUE = 21
+  DEALER_STAND = 17
+
   attr_reader :hand
 
   def display_hand
@@ -11,7 +14,7 @@ module Hand
   def hand_value
     aces = hand.count { |card| card.name == 'ACE'}
     value = hand.map(&:value).reduce(:+)
-    value <= 21 ? value : ace_adjusted_value(value, aces)
+    value <= MAX_VALUE ? value : ace_adjusted_value(value, aces)
   end
 
   private
@@ -37,13 +40,11 @@ class Player
   end
 
   def busted?
-    hand_value > 21
+    hand_value > MAX_VALUE
   end
 end
 
 class Dealer < Player
-  MAX_VALUE = 17
-
   def hit(card)
     puts "#{name} is drawing a card..."
     sleep 2
@@ -51,7 +52,23 @@ class Dealer < Player
   end
 
   def stay?
-    hand_value >= MAX_VALUE
+    hand_value >= DEALER_STAND
+  end
+
+  def display_hand(options = {})
+    puts "#{name} has these cards:"
+    if options[:hide]
+      puts '<HIDDEN CARD>'
+      hand.each_with_index do |card, idx|
+        next if idx == 0
+        puts card.to_s
+      end
+      puts 'Total value of: ?'
+    else
+      hand.each { |card| puts card.to_s }
+      puts "Total value of: #{hand_value}"
+    end
+    puts
   end
 end
 
@@ -114,7 +131,7 @@ class Game
   def start
     welcome_message
     deal_cards
-    display_table
+    display_table(hide_dealer_hand: true)
     player_turn
     dealer_turn
     display_results
@@ -151,17 +168,21 @@ class Game
     2.times { dealer.hand << deck.deal_card }
   end
 
-  def display_table
+  def display_table(options = {})
     clear
     player.display_hand
-    dealer.display_hand
+    if options[:hide_dealer_hand]
+      dealer.display_hand(hide: true)
+    else
+      dealer.display_hand
+    end
   end
 
   def player_turn
     loop do
       hit? ? player.hit(deck.deal_card) : break
       break if player.busted?
-      display_table
+      display_table(hide_dealer_hand: true)
     end
     display_table
   end
